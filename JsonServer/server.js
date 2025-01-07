@@ -37,7 +37,7 @@ const db = {
       "password": "Cuda#123"
     }
   ]
-} ; // Embed the data directly
+}; // Embed the data directly
 const router = jsonServer.router(db);
 const middlewares = jsonServer.defaults();
 
