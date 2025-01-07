@@ -1,7 +1,8 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-signup',
@@ -15,7 +16,8 @@ export class SignupComponent implements OnInit {
   showEmailPopup: boolean = false;
   showMobilePopup: boolean = false;
   showPasswordPopup: boolean = false;
-  showPassword: boolean = false; // To toggle password visibility
+  showPassword: boolean = false;
+  private baseUrl = environment.apiUrl;
 
   constructor(private formbuilder: FormBuilder, private _http: HttpClient, private _router: Router) {}
 
@@ -38,36 +40,48 @@ export class SignupComponent implements OnInit {
       
       if (!this.signupForm.controls['name'].valid) {
         this.showNamePopup = true;
-        setTimeout(() => this.showNamePopup = false, 5000); // Pop-up disappears after 3 seconds
+        setTimeout(() => this.showNamePopup = false, 5000);
       }
 
       if (!this.signupForm.controls['email'].valid) {
         this.showEmailPopup = true;
-        setTimeout(() => this.showEmailPopup = false, 5000); // Pop-up disappears after 3 seconds
+        setTimeout(() => this.showEmailPopup = false, 5000);
       }
 
       if (!this.signupForm.controls['mobile'].valid) {
         this.showMobilePopup = true;
-        setTimeout(() => this.showMobilePopup = false, 5000); // Pop-up disappears after 3 seconds
+        setTimeout(() => this.showMobilePopup = false, 5000);
       }
 
       if (!this.signupForm.controls['password'].valid) {
         this.showPasswordPopup = true;
-        setTimeout(() => this.showPasswordPopup = false, 8000); // Pop-up disappears after 3 seconds
+        setTimeout(() => this.showPasswordPopup = false, 8000);
       }
 
       alert('Please fill all the required fields correctly before submitting');
       return;
     }
 
-    this._http.post<any>('http://localhost:3000/signup', this.signupForm.value).subscribe(res => {
-      console.log(res);
-      alert('Signup Successfully');
-      this.signupForm.reset();
-      this._router.navigate(['/login']);
-    }, err => {
-      console.log(err);
-      alert('Signup Error');
+    this._http.post<any>(`${this.baseUrl}/signup`, this.signupForm.value).subscribe({
+      next: (response) => {
+        console.log('Signup successful:', response);
+        alert('Signup Successfully');
+        this.signupForm.reset();
+        this._router.navigate(['/login']);
+      },
+      error: (error: HttpErrorResponse) => {
+        console.error('Signup error:', error);
+        
+        if (error.status === 400) {
+          if (error.error.message.includes('duplicate')) {
+            alert('Email already exists. Please use a different email address.');
+          } else {
+            alert('Signup failed: ' + error.error.message);
+          }
+        } else {
+          alert('Signup failed. Please try again later.');
+        }
+      }
     });
   }
 }

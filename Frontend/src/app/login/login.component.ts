@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -11,8 +12,9 @@ import { Router } from '@angular/router';
 })
 export class LoginComponent implements OnInit {
   loginForm!: FormGroup;
-  showLoginError: boolean = false; // To show login error pop-up
-  showPassword: boolean = false; // To toggle password visibility
+  showLoginError: boolean = false;
+  showPassword: boolean = false;
+  private baseUrl = environment.apiUrl;
 
   constructor(private formbuilder: FormBuilder, private _http: HttpClient, private _router: Router) {}
 
@@ -34,23 +36,23 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    this._http.get<any>('http://localhost:3000/signup').subscribe(res => {
-      const user = res.find((a: any) => {
-        return a.email === this.loginForm.value.email && a.password === this.loginForm.value.password;
-      });
-
-      if (user) {
+    this._http.post<any>(`${this.baseUrl}/login`, this.loginForm.value).subscribe({
+      next: (response) => {
         console.log('Login successful');
-        // alert('Marvellous logged in successfully');
         this._router.navigate(['/restaurent']);
         this.loginForm.reset();
-      } else {
+      },
+      error: (error) => {
+        console.error('Login error:', error);
         this.showLoginError = true;
-        setTimeout(() => this.showLoginError = false, 3000); // Pop-up disappears after 3 seconds
+        setTimeout(() => this.showLoginError = false, 3000);
+        
+        if (error.status === 401) {
+          alert('Invalid email or password');
+        } else {
+          alert('Login failed. Please try again later.');
+        }
       }
-    }, err => {
-      console.log(err);
-      alert('Login Error');
     });
   }
 }

@@ -1,4 +1,5 @@
+// src/environments/environment.prod.ts
 export const environment = {
   production: true,
-  apiUrl: 'YOUR_JSON_SERVER_URL'  // We'll get this URL after deploying the JSON server
+  apiUrl: 'YOUR_VERCEL_JSON_SERVER_URL/api'  // Replace with your actual Vercel JSON server URL
 };
